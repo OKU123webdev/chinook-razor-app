@@ -1,0 +1,223 @@
+@page
+@model WebApp.Pages.Update
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Update Page</title>
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <!-- JAVASCRIPT -->
+        <script>
+            // Initialise counters
+            let addTrackCount = 0;
+            let removeTrackCount = 0;
+            // FUNCTION TO ADD/REMOVE TRACKS
+            function addTrack() {
+                // CREATE CONTAINER
+                let container = document.getElementById("addNewTracks");
+                let headerContainer = document.getElementById("addNewTracksContainer");
+
+                // SHOW HEADER
+                headerContainer.style.display = "block";
+
+                let trackDiv = document.createElement("div");
+
+                // TRACK NAME
+                let trackInput = document.createElement("input");
+                trackInput.type = "text";
+                trackInput.name = "tbxTracks[]";
+                trackInput.placeholder = "Track Name";
+
+                // GENRE DROPDOWN
+                let genreDropdown = document.createElement("select");
+                genreDropdown.name = "tbxGenres[]"; // Name should be plural for array binding
+                genreDropdown.innerHTML = '@foreach (Genre genre in Model.Genres) { <option value="@genre.GenreId">@genre.Name</option> }';
+
+
+                // COMPOSER NAME
+                let composerInput = document.createElement("input");
+                composerInput.type = "text";
+                composerInput.name = "tbxComposers[]";
+                composerInput.placeholder = "Composer Name";
+
+                // REMOVE TRACK BUTTON
+                let removeButton = document.createElement("button");
+                removeButton.textContent = "Remove";
+                removeButton.type = "button";
+                removeButton.onclick = function () {
+                    container.removeChild(trackDiv);
+                    //updateTrackNumbers();
+
+                    // update remove count
+                    removeTrackCount++;
+                    console.log("Remove Track Count: " + removeTrackCount);
+
+                    // Hide header if no tracks remain
+                    if (container.children.length === 0) {
+                        headerContainer.style.display = "none";
+                    }
+                };
+
+                // APPEND INPUTS
+                trackDiv.appendChild(trackInput);
+                trackDiv.appendChild(genreDropdown);
+                trackDiv.appendChild(composerInput);
+                trackDiv.appendChild(removeButton);
+                container.appendChild(trackDiv);
+
+                addTrackCount++;
+                console.log("Add Track Count: " + addTrackCount);
+            }   
+
+
+            // FUNCTION TO DELETE
+            function confirmDelete() {
+                // get user inputs
+                let artistToDelete = document.querySelector('input[name="deleteArtist"]:checked');
+                let tracksToDelete = document.querySelectorAll('input[name="deleteTracks"]:checked');
+
+                let itemsToDelete = [];
+
+                // delete artist
+                if (artistToDelete && artistToDelete.checked) {
+                    // get artist name
+                    let artistName = artistToDelete.getAttribute("data-artist-name");
+                    itemsToDelete.push("Artist: " + artistName);
+                }
+
+                // delete tracks
+                tracksToDelete.forEach(checkbox => {
+                    // get selected tracks
+                    let trackName = checkbox.getAttribute("data-track-name");
+                    itemsToDelete.push("Track: " + trackName);
+                });
+
+                // alert if no items selected to delete
+                if (itemsToDelete.length === 0) {
+                    alert("No items selected for deletion");
+                    return;
+                }
+
+                // confirm delete
+                let confirmMessage = "You are about to delete the following:\n\n" + itemsToDelete.join("\n") + "\n\nAre You sure?";
+                let confirmDelete = confirm(confirmMessage);
+
+                // submit page 
+                if (confirmDelete) {
+                    document.getElementById("updateForm").submit();
+                }
+            }
+
+            // VALIDATION CHECKS
+            function validation() {
+                let albumTitle = document.getElementById("updAlbumTitle").value; // get album title
+                let artistName = document.getElementById("updArtistName").value; // get artist name
+
+                // check album title & artist name
+                if (!albumTitle || albumTitle.length > 160) { // check album title
+                    alert("Please complete ALBUM Title (Max 160 characters)");
+                    return false;
+                } else if (!artistName || artistName.length > 120) { // check Artist name
+                    alert("Please complete ARTIST name (Max 120 characters)");
+                    return false;
+                }
+
+                // check current tracks
+                let trackTitles = document.querySelectorAll('input[name="trackNames"]');
+                for (let track of trackTitles) {
+                    if (!track.value || track.value.length > 200) {
+                        alert("Please complete all TRACK titles (Max 200 characters). You can delete the number of tracks before updating.");
+                        return false;
+                    }
+                }
+
+                // check new tracks
+                if (addTrackCount !== removeTrackCount){
+                    let trackInputs = document.querySelectorAll("#addNewTracks input[name='tbxTracks[]']");
+                    if (trackInputs.length === 0) { // check if track null
+                        alert("Please add at least one track.");
+                        return false;
+                    }
+
+                    for (let track of trackInputs) {
+                        if (!track.value.trim()) {
+                            alert("Please complete all track names.");
+                            return false;
+                        }
+
+                        if (track.value.length > 160) { // check track character length
+                            alert("Track names must be less than 160 characters.");
+                            return false;
+                        }
+                    }
+                }
+
+                // If all fields are valid
+                return true;
+
+            }
+
+
+
+        </script>
+    </head>
+
+    <body style="padding: 2%;">
+        <!-- Validation ErrorMsg  -->
+        @if (ViewData["ErrorMsg"] != null)
+        {
+            <script>
+                alert("@ViewData["ErrorMsg"]");
+            </script>
+        }
+
+        <!-- HEADING -->
+        <h2 class="display-5">Update Album</h2>
+        <!-- RETURN TO INDEX -->
+        <p><a href="/">Return to homepage</a></p>
+
+        <!-- ..................... UPDATE ALBUM FORM ................. -->
+        <form method="POST" id="updateForm" onsubmit="return validation()">
+            @Html.AntiForgeryToken()
+            <!-- Hidden Album ID -->
+            <input type="hidden" name="albumId" value="@Model.Album.AlbumId">
+            <!-- Album Title -->
+            <label for="updAlbumTitle">Album Title:</label>
+            <input type="text" id="updAlbumTitle" name="updAlbumTitle" style="width: 300px;" value="@Model.Album.Title">
+            <br><br>
+            <!-- Artist Name  -->
+            <label for="updArtistName">Artist Name:</label>
+            <input type="text" id="updArtistName" name="updArtistName" style="width: 300px;" value="@Model.ArtistName">
+            <input type="checkbox" name="deleteArtist" value="true" data-artist-name="@Model.ArtistName">
+            <br><br>
+            <!-- Track Details -->
+            <h3>Tracks in this Album</h3>
+            <ol>
+                <!-- show track name & delete checkbox -->
+                @foreach (var track in Model.Tracks)
+                {   
+                    <li>
+                        <input type="text" name="trackNames" style="width: 35%;" value="@track.Name">
+                        <input type="checkbox" name="deleteTracks" value="@track.TrackId" data-track-name="@track.Name">
+                    </li>
+                }
+            </ol>
+
+            <!-- ADD NEW TRACKS -->
+            <div id="addNewTracksContainer" style="display: none;">
+                <h3>Add New Tracks</h3>
+                <div id="addNewTracks"></div>
+            </div>
+            <button type="button" onclick="addTrack()" class="btn btn-outline-dark">Add New Track</button>
+
+            <!-- SUBMIT FORM -->
+            <input type="submit" value="Update Album" class="btn btn-outline-dark">
+            <button type="button" onclick="confirmDelete()" class="btn btn-outline-dark">Delete Selected</button>
+        </form>
+        <!-- Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    </body>
+</html>

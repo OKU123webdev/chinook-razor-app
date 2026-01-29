@@ -1,0 +1,138 @@
+@page
+@model WebApp.Pages.Insert
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Insert Album</title>
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <!-- JAVASCRIPT  -->
+        <script>
+            // FUNCTION TO ADD/REMOVE TRACKS
+            function addTrack() {
+                // create track container
+                let container = document.getElementById("tracks");
+                let trackDiv = document.createElement("div"); 
+                // add track number
+                let number = document.createElement("span"); 
+                number.className = "track-number";
+
+                // TRACK NAME
+                let trackInput = document.createElement("input");
+                trackInput.type = "text";
+                trackInput.name = "tbxTracks[]";
+                trackInput.placeholder = "Track Name";
+
+                // GENRE DROPDOWN
+                let genreDropdown = document.createElement("select");
+                genreDropdown.name = "tbxGenres[]"; // Name should be plural for array binding
+                genreDropdown.innerHTML = '@foreach (Genre genre in Model.Genres) { <option value="@genre.GenreId">@genre.Name</option> }';
+
+                // COMPOSER NAME
+                let composerInput = document.createElement("input");
+                composerInput.type = "text";
+                composerInput.name = "tbxComposers[]";
+                composerInput.placeholder = "Composer Name";
+
+                // REMOVE TRACK BUTTON
+                let removeButton = document.createElement("button");
+                removeButton.textContent = "Remove";
+                removeButton.type = "button";
+                removeButton.onclick = function () {
+                    container.removeChild(trackDiv);
+                    updateTrackNumbers();
+                };
+
+                // APPEND INPUTS
+                trackDiv.appendChild(number);
+                trackDiv.appendChild(trackInput);
+                trackDiv.appendChild(genreDropdown);
+                trackDiv.appendChild(composerInput);
+                trackDiv.appendChild(removeButton);
+                container.appendChild(trackDiv);
+
+                updateTrackNumbers(); // run function to updateTrackNumbers
+            }
+
+            // UPDATE TRACK NUMBERS
+            function updateTrackNumbers() {
+                let trackNumbers = document.querySelectorAll(".track-number");
+                trackNumbers.forEach((num, index) => {
+                    num.textContent = (index + 1) + ". "; // Renumber tracks
+                });
+            }
+
+            // START PAGE WITH ONE TRACK
+            window.onload = function () {
+                addTrack(); 
+            };
+
+            // VALIDATION CHECKS
+            function validation() {
+                let checkAlbumTitle = document.getElementById("tbxAlbumTitle").value; // get album title
+                let checkArtistName = document.getElementById("tbxArtistName").value; // get Artist name
+
+                // check album title & artist name
+                if (!checkAlbumTitle || checkAlbumTitle.length > 160) { 
+                    alert("Please complete ALBUM Title (Max 160 characters)"); // alert if issue
+                    return false;
+                } else if (!checkArtistName || checkArtistName.length > 120) { 
+                    alert("Please complete ARTIST name (Max 120 characters)"); // alert if issue
+                    return false;
+                }
+
+                // Check track names
+                let trackInputs = document.querySelectorAll("#tracks input[name='tbxTracks[]']");
+                if (trackInputs.length === 0) { // check if track null
+                    alert("Please add at least one track.");
+                    return false;
+                }
+
+                for (let track of trackInputs) {
+                    if (!track.value.trim()) {
+                        alert("Please complete all track names.");
+                        return false;
+                    }
+
+                    if (track.value.length > 160) { // check track character length
+                        alert("Track names must be less than 160 characters.");
+                        return false;
+                    }
+                }
+
+                // PASS VALIDATION
+                return true;
+            }
+        </script>
+    </head>
+
+    <body style="padding: 2%;">
+        <!-- HEADING -->
+        <h1 class="display-5" style="padding: bottom 5px;">Insert New Album</h1>
+        <!-- RETURN TO INDEX -->
+        <p><a href="/">Return to homepage</a></p>
+
+        <!-- .............. NEW ALBUM FORM .............. -->
+        <form method="POST" id="insertAlbum" onsubmit="return validation()">
+            @Html.AntiForgeryToken()
+            <!-- Album Title -->
+            <p>Album Title: <input type="text" id="tbxAlbumTitle" name="tbxAlbumTitle" /></p>
+            <!-- Artist Name  -->
+            <p>Artist Name: <input type="text" id="tbxArtistName" name="tbxArtistName" /></p>
+            <!-- Track Details  -->
+            <h2>Tracks</h2>
+            <!-- button to add tracks  -->
+            <button type="button" onclick="addTrack()" class="btn btn-outline-dark m-3">Add Track</button>
+            <div id="tracks"></div>
+            <!-- SUBMIT FORM  -->
+            <input type="submit" value="SAVE ALBUM TO DATABASE" class="btn btn-outline-dark m-3"/>
+        
+        </form>
+
+        <!-- Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    </body>
+</html>

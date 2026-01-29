@@ -1,0 +1,152 @@
+@page
+@model WebApp.Pages.ViewAlbums
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chinook Music Store</title>
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    </head>
+
+    <body style="padding: 2%;">
+        <!-- HEADING -->
+        <h1 class="display-5">@Model.Heading</h1>
+
+        <!-- ...............SEARCH OPTIONS................  -->
+        <div class="container">
+            <div class="d-flex flex-row gap-4">
+                <!-- SORT  -->
+                <div class="p-3 me-4">
+                    <!-- Sort by Album Title -->
+                    <p>
+                        Sort by Album Title:
+                        <br>
+                        <a href="/Index?sortOrder=albumAsc">Ascending</a>
+                        <br>
+                        <a href="/Index?sortOrder=albumDesc">Descending</a>
+                    </p>
+                    <!-- Sort by Artist Name -->
+                    <p>
+                        Sort by Artist Name:
+                        <br>
+                        <a href="/Index?sortOrder=artistAsc">Ascending</a>
+                        <br>
+                        <a href="/Index?sortOrder=artistDesc">Descending</a>
+                        <br>
+                    </p>
+                </div>
+
+                <!-- FILTER BY GENRE -->
+                <div class="p-3 me-4">
+                    <!-- form to select genre  -->
+                    <form method="get">
+                        Filter by Genre<br><br>
+                        <!-- genre dropdown -->
+                        <select id="genre" name="genre">
+                            <!-- loop through each genre in db -->
+                            @foreach (Genre genre in Model.Genres) 
+                            {
+                                <option value="@genre.GenreId">@genre.Name</option>
+                            }
+                        </select>
+                        <!-- filter button  -->
+                        <button type="submit" class="btn btn-outline-dark">Filter</button>
+                    </form>
+
+
+                    <!-- Show selected genre when filtering -->
+                    @if (!string.IsNullOrEmpty(Model.CurrentGenre))
+                    {
+                        <p style="weight:bold;">@Model.CurrentGenre</p>
+                    }
+                </div>
+
+                <!-- SEARCH BOX -->
+                <div class="p-3 me-4">
+                    <!-- form to search -->
+                    <form method="get">
+                        Search for album or artist name <br><br>
+
+                        <!-- search - user input  -->
+                        <input type="text" name="search"/>
+                        <!-- search - button -->
+                        <button type="submit" class="btn btn-outline-dark">Search</button>
+                    </form>
+                </div>
+
+                <!-- RESET TABLE -->
+                <div class="p-3 me-4 justify-content-center">
+                    <br>
+                    <!-- View All/Reset button  -->
+                    <form method="get" class="p-3">
+                        <button type="submit" class="btn btn-outline-dark">Reset search/View All</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ADD ALBUM LINK -->
+            <div style="padding-bottom:20px;">
+                <a href="/Insert" class="p-3">
+                    <button type="button" class="btn btn-outline-dark">Insert new album</button>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- ......................ALBUMS IN DATABASE TABLE...................-->
+        <div class="container">
+            <table class="table table-info table-striped my-table mx-auto" border="1"
+                style="text-align: center; width:auto;">
+                <!-- Table Headings -->
+                <thead>
+                    <tr>
+                        <th class="text-uppercase fs-6">Album</th>
+                        <th class="text-uppercase fs-6">Artist</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+
+                <!-- Table Rows  -->
+                <tbody>
+                    @foreach (AlbumDetails albumDetails in @Model.AlbumDetails) // get albums from database
+                    {
+                        <tr class="table-info align-items-center">
+                            <!-- Album Title  -->
+                            <td class="word-wrap:break-word;">@albumDetails.Title</td>
+                            <!-- Artist Name  -->
+                            <td style="font-style: italic; word-wrap:break-word;">@albumDetails.Name</td>
+                            <!-- Details, Update & Delete page links -->
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-2">
+                                    <!-- DETAILS -->
+                                    <a href="/Details?albumId=@albumDetails.AlbumId">
+                                        <button type="button" class="btn btn-light">Details</button>
+                                    </a>
+                                    <!-- UPDATE -->
+                                    <a href="/Update?albumId=@albumDetails.AlbumId">
+                                        <button type="button" class="btn btn-light">Update</button>
+                                    </a>
+                                    <!-- DELETE -->
+                                    <a href="/Delete?albumId=@albumDetails.AlbumId">
+                                        <button type="button" class="btn btn-light">Delete</button>
+                                    </a>
+                                </div>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+        <!-- Bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+    </body>
+</html>
